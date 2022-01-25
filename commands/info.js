@@ -20,7 +20,7 @@ module.exports = {
                 embeds: [{
                     "type": "rich",
                     "title": opt,
-                    "description": `**Generation:** ${infoPoke.gen}\n\n**Types:** ${infoPoke.types[0]} / ${infoPoke.types[1] || 'None'}\n\n**Height:** ${infoPoke.height / 10} m\n\n**Weight:** ${infoPoke.weight / 10} kg\n\n`,
+                    "description": `**Dex Number:** ${infoPoke.id}\n\n**Generation:** ${infoPoke.gen}\n\n**Types:** ${infoPoke.types[0]} / ${infoPoke.types[1] || 'None'}\n\n**Height:** ${infoPoke.height / 10} m\n\n**Weight:** ${infoPoke.weight / 10} kg\n\n`,
                     "color": 0x09a210,
                     "image": {
                         "url": infoPoke.front_sprite,

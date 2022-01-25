@@ -4,7 +4,7 @@ const { Routes } = require('discord-api-types/v9');
 const { Client, Intents, Collection } = require('discord.js');
 const fs = require('fs');
 
-// const PLANETGEO_ID = process.env.PLANETGEO_ID;
+const PLANETGEO_ID = process.env.PLANETGEO_ID;
 const TOKEN = process.env.TOKEN
 
 const client = new Client({ 
@@ -31,12 +31,21 @@ client.once('ready', () => {
     }).setToken(TOKEN);
     (async () => {
         try {
-            await rest.put(
-                Routes.applicationCommands(CLIENT_ID), {
-                    body: commands
-                }
-            );
-            console.log('Successfully registered application commands globally');
+            if (!PLANETGEO_ID) {
+                await rest.put(
+                    Routes.applicationCommands(CLIENT_ID), {
+                        body: commands
+                    }
+                );
+                console.log('Successfully registered application commands globally');
+            } else {
+                await rest.put(
+                    Routes.applicationGuildCommands(CLIENT_ID, PLANETGEO_ID), {
+                        body: commands
+                    }
+                );
+                console.log('Successfully registered application commands for development guild (PlanetGeo)');
+            }
         } catch (error) {
             if (error) console.error(error);
         }

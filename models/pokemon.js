@@ -1,5 +1,16 @@
 const axios = require('axios').default;
 
+const generations = [
+    [1,151],// gen 1
+    [152,251],//gen 2
+    [252,386],//gen 3
+    [387,493],// gen 4
+    [494,649],//gen 5
+    [650,721],//gen 6
+    [722,809],//gen 7
+    [810,898]// gen 8
+]
+
 class Pokemon {
     constructor(id,name,types,height,weight,front_sprite) {
         this.id = id
@@ -11,25 +22,13 @@ class Pokemon {
     }
 
     get gen() {
-        if (1 <= this.id && this.id <= 151) {
-            return 1
-        } else if (152 <= this.id && this.id <= 251) {
-            return 2
-        } else if (252 <= this.id && this.id <= 386) {
-            return 3
-        } else if (387 <= this.id && this.id <= 493) {
-            return 4
-        } else if (494 <= this.id && this.id <= 649) {
-            return 5
-        } else if (650 <= this.id && this.id <= 721) {
-            return 6
-        } else if (722 <= this.id && this.id <= 809) {
-            return 7
-        } else if (810 <= this.id && this.id <= 898) {
-            return 8
-        } else {
-            return -1
+        for(let i = 0; i < generations.length; i++) {
+            let [min, max] = generations[i]
+            if (min <= this.id && this.id <= max) {
+                return i+1
+            }
         }
+        return -1
     }
 }
 
@@ -43,6 +42,7 @@ const comparisons = {
 
 
 module.exports = {
+    generations,
     getPokemon : async filter => {
         const query = `https://pokeapi.co/api/v2/pokemon/${filter}`;
         const data = await axios.get(query)
@@ -58,14 +58,24 @@ module.exports = {
             );
         }
     }, 
-    comparePokemon : (pokeA, pokeB) => {
+    comparePokemon : (pokeA, pokeB, useId=false) => {
         matchup = {}
-        if (pokeA.gen > pokeB.gen) {
-            matchup.gen = comparisons['less']
-        } else if (pokeA.gen < pokeB.gen) {
-            matchup.gen = comparisons['greater']
+        if (useId) {
+            if (pokeA.id > pokeB.id) {
+                matchup.gen = comparisons['less']
+            } else if (pokeA.id < pokeB.id) {
+                matchup.gen = comparisons['greater']
+            } else {
+                matchup.gen = comparisons['correct']
+            }
         } else {
-            matchup.gen = comparisons['correct']
+            if (pokeA.gen > pokeB.gen) {
+                matchup.gen = comparisons['less']
+            } else if (pokeA.gen < pokeB.gen) {
+                matchup.gen = comparisons['greater']
+            } else {
+                matchup.gen = comparisons['correct']
+            }
         }
 
         for (let i = 0; i < 2; i++) {

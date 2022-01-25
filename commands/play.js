@@ -1,13 +1,29 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { getPokemon, comparePokemon, loadAllPokemon } = require('../models/pokemon');
+const { getPokemon, comparePokemon, loadAllPokemon, generations } = require('../models/pokemon');
 const { MessageEmbed } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('play')
-        .setDescription('Starts a new game of Squirdle'),
+        .setDescription('Starts a new game of Squirdle')
+        .addIntegerOption(opt => 
+            opt
+                .setName('generation')
+                .setRequired(false)
+                .setDescription('Limits the game to a given generation')
+                .addChoices(
+                    generations.map((_, i) => [`${i}`, i])
+                )
+        ),
     async execute(interaction) {
-        const randPoke = await getPokemon(Math.floor(Math.random() * 898) + 1);
+        let min,max;
+        const fixedGen = interaction.options.data.length >= 1
+        if (fixedGen) {
+            [min,max] = generations[interaction.options.data[0].value - 1];
+        } else {
+            [min,max] = [1,898];
+        }
+        const randPoke = await getPokemon(Math.floor(Math.random() * (max - min + 1)) + min);
         const allPokemon = await loadAllPokemon();
         console.log(randPoke)
         await interaction.reply({
@@ -29,7 +45,7 @@ module.exports = {
                 const matches = allPokemon.filter(p => p.name === msg.content);
                 if (matches.length) {
                     const guessPoke = await getPokemon(matches[0].id);
-                    const matchup = comparePokemon(guessPoke, randPoke);
+                    const matchup = comparePokemon(guessPoke, randPoke, useId=fixedGen);
                     const matchupEmbed = new MessageEmbed()
                         .setColor('#0099ff')
                         .setTitle('Matchup')
