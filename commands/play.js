@@ -20,12 +20,9 @@ module.exports = {
             reason: 'Thread for playing the Squirdle game'
         });
         await thread.setLocked(true);
-        for(let guesses = 0; guesses < 5; guesses++){
-            const filter = m => {
-                console.log(m.author.username, reply.author.username, m.author == reply.author)
-                return m.author.id !== reply.author.id
-            };
-            const messages = await thread.awaitMessages({ filter, max: 1, time: 60_000, errors: ['time'] })
+        while (true) {
+            const filter = m => m.author.id !== reply.author.id;
+            const messages = await thread.awaitMessages({ filter, max: 1, time: 600_000, errors: ['time'] })
                 .catch(console.error);
             if (messages) {
                 const msg = messages.first();
@@ -55,6 +52,6 @@ module.exports = {
             }
         }
         await interaction.editReply(`The Pokemon was: ${randPoke.name}`)
-        await thread.setArchived(true);
+        await thread.delete();
     }
 };

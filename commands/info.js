@@ -13,7 +13,6 @@ module.exports = {
     async execute(interaction) {
         const allPokemon = await loadAllPokemon();
         const opt = interaction.options.data[0].value
-        console.log(opt)
         const matches = allPokemon.filter(p => p.name === opt);
         if (matches.length) {
             const infoPoke = await getPokemon(matches[0].id);
@@ -31,7 +30,7 @@ module.exports = {
         } else {
             interaction.reply({
                 content: 'Invalid Pokemon'
-            })
+            });
         }
     }
 };
