@@ -32,18 +32,10 @@ client.once('ready', () => {
     (async () => {
         try {
             if (!PLANETGEO_ID) {
-                await rest.put(
-                    Routes.applicationCommands(CLIENT_ID), {
-                        body: commands
-                    }
-                );
+                await rest.put(Routes.applicationCommands(CLIENT_ID), { body: commands });
                 console.log('Successfully registered application commands globally');
             } else {
-                await rest.put(
-                    Routes.applicationGuildCommands(CLIENT_ID, PLANETGEO_ID), {
-                        body: commands
-                    }
-                );
+                await rest.put(Routes.applicationGuildCommands(CLIENT_ID, PLANETGEO_ID), { body: commands });
                 console.log('Successfully registered application commands for development guild (PlanetGeo)');
             }
         } catch (error) {

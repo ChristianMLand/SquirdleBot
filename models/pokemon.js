@@ -32,14 +32,35 @@ class Pokemon {
     }
 }
 
+const blacklist = [385,412,486,491,549,554,640,641,644,646,647,677,680,709,710,740,744,745,773,777,848,874,875,887,888,891];
+
 const comparisons = {
     'greater' : '🔼',
     'less' : '🔽',
     'correct' : '🟩',
     'incorrect' : '🟥',
     'wrong_position' : '🟨'
+};
+
+function compareSize(a, b) {
+    if (a > b) {
+        return comparisons['less']
+    } else if (a < b) {
+        return comparisons['greater']
+    } else {
+        return comparisons['correct']
+    }
 }
 
+function compareOrder(a, b, i) {
+    if (a[i] === b[i]) {
+        return comparisons['correct']
+    } else if (b.includes(a[i])) {
+        return comparisons['wrong_position']
+    } else {
+        return comparisons['incorrect']
+    }
+}
 
 module.exports = {
     generations,
@@ -60,61 +81,23 @@ module.exports = {
     }, 
     comparePokemon : (pokeA, pokeB, useId=false) => {
         matchup = {}
-        if (useId) {
-            if (pokeA.id > pokeB.id) {
-                matchup.gen = comparisons['less']
-            } else if (pokeA.id < pokeB.id) {
-                matchup.gen = comparisons['greater']
-            } else {
-                matchup.gen = comparisons['correct']
-            }
-        } else {
-            if (pokeA.gen > pokeB.gen) {
-                matchup.gen = comparisons['less']
-            } else if (pokeA.gen < pokeB.gen) {
-                matchup.gen = comparisons['greater']
-            } else {
-                matchup.gen = comparisons['correct']
-            }
-        }
-
         for (let i = 0; i < 2; i++) {
-            if (pokeA.types[i] === pokeB.types[i]) {
-                matchup[`type${i+1}`] = comparisons['correct']
-            } else if (pokeB.types.includes(pokeA.types[i])) {
-                matchup[`type${i+1}`] = comparisons['wrong_position']
-            } else {
-                matchup[`type${i+1}`] = comparisons['incorrect']
-            }
+            matchup[`type${i+1}`] = compareOrder(pokeA.types, pokeB.types, i);
         }
-
-        if (pokeA.height > pokeB.height) {
-            matchup.height = comparisons['less']
-        } else if (pokeA.height < pokeB.height) {
-            matchup.height = comparisons['greater']
-        } else {
-            matchup.height = comparisons['correct']
-        }
-
-        if (pokeA.weight > pokeB.weight) {
-            matchup.weight = comparisons['less']
-        } else if (pokeA.weight < pokeB.weight) {
-            matchup.weight = comparisons['greater']
-        } else {
-            matchup.weight = comparisons['correct']
-        }
+        matchup.gen = useId ? compareSize(pokeA.id, pokeB.id) : compareSize(pokeA.gen, pokeB.gen);
+        matchup.height = compareSize(pokeA.height, pokeB.height);
+        matchup.weight = compareSize(pokeA.weight, pokeB.weight);
         return matchup;
     },
-    async loadAllPokemon() {
-        const blacklist = [385,412,486,491,549,554,640,641,644,646,647,677,680,709,710,740,744,745,773,777,848,874,875,887,888,891]
-        const allPokemon = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=898');
+    async loadAllPokemon(min=1, max=898) {
+        const allPokemon = await axios.get(`https://pokeapi.co/api/v2/pokemon?limit=${max - min + 1}&offset=${min - 1}`);
         return allPokemon.data.results
             .map((poke, i) => {
-                if (!blacklist.includes(i)) {
-                    return {name: poke.name, id: i+1}
-                } else {
-                    return {name: poke.name.split('-')[0], id: i+1}
+                const poke_data = {name: poke.name, id: i+1};
+                if (blacklist.includes(i)) {
+                    poke_data.name = poke.name.split('-')[0];
                 }
+                return poke_data;
             });
     }
 }

@@ -11,7 +11,7 @@ module.exports = {
                 .setRequired(true)
         }),
     async execute(interaction) {
-        const allPokemon = await loadAllPokemon();
+        const allPokemon = await loadAllPokemon(1, 898);//TODO refactor so only need to load them once
         const opt = interaction.options.data[0].value
         const matches = allPokemon.filter(p => p.name === opt);
         if (matches.length) {
