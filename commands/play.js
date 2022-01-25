@@ -8,18 +8,30 @@ module.exports = {
         .setDescription('Starts a new game of Squirdle')
         .addIntegerOption(opt => 
             opt
-                .setName('generation')
+                .setName('genstart')
                 .setRequired(false)
-                .setDescription('Limits the game to a given generation')
+                .setDescription('Starting generation for the game to pick from')
+                .addChoices(generations.map((_, i) => [`${i}`, i]))
+        )
+        .addIntegerOption(opt => 
+            opt
+                .setName('genstop')
+                .setRequired(false)
+                .setDescription('End generation for the game to pick from')
                 .addChoices(generations.map((_, i) => [`${i}`, i]))
         ),
     async execute(interaction) {
         /******* Pick Random Pokemon **********/
-        let [min,max] = [1,898];
-        const fixedGen = interaction.options.data[0];
-        if (fixedGen) {
-            [min,max] = generations[fixedGen.value - 1];
+        let [startGen, endGen] = [1,8]
+        if (interaction.options.data[0]) {
+            startGen = interaction.options.data[0].value
+            endGen = startGen
         }
+        if (interaction.options.data[1]) {
+            endGen = interaction.options.data[1].value
+        }
+        const min = generations[startGen - 1][0];
+        const max = generations[endGen - 1][1];
         const randPoke = await getPokemon(Math.floor(Math.random() * (max - min + 1)) + min);
         console.log(randPoke);
         /************* Setup thread channel for game ******************/
@@ -33,6 +45,7 @@ module.exports = {
             reason: 'Thread for playing the Squirdle game'
         });
         /***************** Game loop ******************/
+        let msg;
         while (true) {
             const messages = await thread.awaitMessages({ 
                     filter: m => m.author.id !== reply.author.id, 
@@ -42,12 +55,12 @@ module.exports = {
                 })
                 .catch(console.error);
             if (messages) {
-                const msg = messages.first();
+                msg = messages.first();
                 const allPokemon = interaction.client.allPokemon.filter(p => min <= p.id && p.id <= max)
                 const matches = allPokemon.filter(p => p.name === msg.content);
                 if (matches.length) {
                     const guessPoke = await getPokemon(matches[0].id);
-                    const matchup = comparePokemon(guessPoke, randPoke, useId=(true && fixedGen));
+                    const matchup = comparePokemon(guessPoke, randPoke, useId=(startGen.value == endGen.value));
                     const matchupEmbed = new MessageEmbed()
                         .setColor('#0099ff')
                         .setTitle('Matchup')
@@ -56,7 +69,7 @@ module.exports = {
                         embeds: [matchupEmbed]
                     });
                     if (Object.values(matchup).every(v => v === '🟩')) {
-                        await thread.send('You got it right!');
+                        await interaction.editReply(`${msg.author} won! The Pokemon was: ${randPoke.name}`)
                         break;
                     }
                 } else {
@@ -65,12 +78,11 @@ module.exports = {
                     });
                 }
             } else {
-                await thread.send('Game timed out!');
+                await interaction.editReply(`Game timed out! The Pokemon was: ${randPoke.name}`)
                 break;
             }
         }
-        /******* reveal answer and clean up thread *********/
-        await interaction.editReply(`The Pokemon was: ${randPoke.name}`)
+        /******* clean up thread *********/
         await thread.delete();
     }
 };
