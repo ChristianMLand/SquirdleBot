@@ -1,0 +1,1 @@
+Discord bot implementing the Squirdle game
