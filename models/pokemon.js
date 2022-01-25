@@ -11,6 +11,29 @@ const generations = [
     [810,898]// gen 8
 ]
 
+const types = [
+    'fire',
+    'water',
+    'grass',
+    'bug',
+    'flying',
+    'normal',
+    'electric',
+    'rock',
+    'ground',
+    'steel',
+    'dark',
+    'ghost',
+    'fairy',
+    'ice',
+    'fighting',
+    'dragon',
+    'psychic',
+    'poison',
+]
+
+const blacklist = [385,412,486,491,549,554,640,641,644,646,647,677,680,709,710,740,744,745,773,777,848,874,875,887,888,891];
+
 class Pokemon {
     constructor(id,name,types,height,weight,front_sprite) {
         this.id = id
@@ -31,8 +54,6 @@ class Pokemon {
         return -1
     }
 }
-
-const blacklist = [385,412,486,491,549,554,640,641,644,646,647,677,680,709,710,740,744,745,773,777,848,874,875,887,888,891];
 
 const comparisons = {
     'greater' : '🔼',
@@ -64,6 +85,7 @@ function compareOrder(a, b, i) {
 
 module.exports = {
     generations,
+    types,
     getPokemon : async filter => {
         const query = `https://pokeapi.co/api/v2/pokemon/${filter}`;
         const data = await axios.get(query)
@@ -73,8 +95,8 @@ module.exports = {
                 data.data.id,
                 data.data.name,
                 data.data.types.map(type => type.type.name),
-                data.data.height,
-                data.data.weight,
+                data.data.height / 10,
+                data.data.weight / 10,
                 data.data.sprites.front_default
             );
         }
@@ -90,14 +112,18 @@ module.exports = {
         return matchup;
     },
     async loadAllPokemon(min=1, max=898) {
-        const allPokemon = await axios.get(`https://pokeapi.co/api/v2/pokemon?limit=${max - min + 1}&offset=${min - 1}`);
-        return allPokemon.data.results
-            .map((poke, i) => {
-                const poke_data = {name: poke.name, id: i+1};
-                if (blacklist.includes(i)) {
-                    poke_data.name = poke.name.split('-')[0];
-                }
-                return poke_data;
-            });
+        const allPokemon = [];
+        for (let i = min; i <= max; i++) {
+            const poke_data = await axios.get(`https://pokeapi.co/api/v2/pokemon/${i}`);
+            allPokemon.push(new Pokemon(
+                poke_data.data.id,
+                blacklist.includes(i-1) ? poke_data.data.name.split('-')[0] : poke_data.data.name,
+                poke_data.data.types.map(t => t.type.name),
+                poke_data.data.height / 10,
+                poke_data.data.weight / 10,
+                poke_data.data.sprites.front_default
+            ));
+        }
+        return allPokemon
     }
 }

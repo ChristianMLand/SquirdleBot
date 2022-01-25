@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { getPokemon, comparePokemon, loadAllPokemon, generations } = require('../models/pokemon');
+const { getPokemon, comparePokemon, generations } = require('../models/pokemon');
 const { MessageEmbed } = require('discord.js');
 
 module.exports = {
@@ -23,7 +23,6 @@ module.exports = {
         const randPoke = await getPokemon(Math.floor(Math.random() * (max - min + 1)) + min);
         console.log(randPoke);
         /************* Setup thread channel for game ******************/
-        const allPokemon = await loadAllPokemon(min, max);//TODO refactor so only need to load the pokemon once
         await interaction.reply({
             content: "Guess the Pokemon I'm thinking of!",
         });
@@ -44,6 +43,7 @@ module.exports = {
                 .catch(console.error);
             if (messages) {
                 const msg = messages.first();
+                const allPokemon = interaction.client.allPokemon.filter(p => min <= p.id && p.id <= max)
                 const matches = allPokemon.filter(p => p.name === msg.content);
                 if (matches.length) {
                     const guessPoke = await getPokemon(matches[0].id);

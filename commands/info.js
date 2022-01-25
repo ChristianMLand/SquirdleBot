@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { loadAllPokemon, getPokemon } = require('../models/pokemon');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -11,16 +10,15 @@ module.exports = {
                 .setRequired(true)
         }),
     async execute(interaction) {
-        const allPokemon = await loadAllPokemon(1, 898);//TODO refactor so only need to load them once
         const opt = interaction.options.data[0].value
-        const matches = allPokemon.filter(p => p.name === opt);
+        const matches = interaction.client.allPokemon.filter(p => p.name === opt);
         if (matches.length) {
-            const infoPoke = await getPokemon(matches[0].id);
+            const infoPoke = matches[0];
             interaction.reply({
                 embeds: [{
                     "type": "rich",
                     "title": opt,
-                    "description": `**Dex Number:** ${infoPoke.id}\n\n**Generation:** ${infoPoke.gen}\n\n**Types:** ${infoPoke.types[0]} / ${infoPoke.types[1] || 'None'}\n\n**Height:** ${infoPoke.height / 10} m\n\n**Weight:** ${infoPoke.weight / 10} kg\n\n`,
+                    "description": `**Dex Number:** ${infoPoke.id}\n\n**Generation:** ${infoPoke.gen}\n\n**Types:** ${infoPoke.types[0]} / ${infoPoke.types[1] || 'None'}\n\n**Height:** ${infoPoke.height} m\n\n**Weight:** ${infoPoke.weight} kg\n\n`,
                     "color": 0x09a210,
                     "image": {
                         "url": infoPoke.front_sprite,

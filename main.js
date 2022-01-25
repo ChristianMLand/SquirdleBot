@@ -3,6 +3,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { Client, Intents, Collection } = require('discord.js');
 const fs = require('fs');
+const { loadAllPokemon } = require('./models/pokemon');
 
 const PLANETGEO_ID = process.env.PLANETGEO_ID;
 const TOKEN = process.env.TOKEN
@@ -23,8 +24,9 @@ for (const file of commandFiles) {
     client.commands.set(command.data.name, command);
 }
 
-client.once('ready', () => {
-    console.log('Ready!');
+client.once('ready', async () => {
+    client.allPokemon = await loadAllPokemon();//list of all pokemon as pokemon objects
+    console.log('Loaded all Pokemon successfully!');
     const CLIENT_ID = client.user.id;
     const rest = new REST({
         version: '9'
@@ -42,6 +44,7 @@ client.once('ready', () => {
             if (error) console.error(error);
         }
     })();
+    console.log('Ready!');
 });
 
 client.on('interactionCreate', async interaction => {
